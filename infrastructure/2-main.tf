@@ -55,6 +55,27 @@ module "cluster_autoscaler_pod_identity" {
     Environment = "dev"
   }
 }
+
+module "aws_lb_controller_pod_identity" {
+  source = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "1.12.1"
+  name = "aws-lbc"
+  attach_aws_lb_controller_policy = true
+  # Pod Identity Associations
+  association_defaults = {
+    namespace       = "kube-system"
+    service_account = "aws-lb-controller-aws-load-balancer-controller"
+  }
+  associations = {
+    ex-one = {
+      cluster_name = module.eks.cluster_name
+    }
+  }
+  tags = {
+    Environment = "dev"
+  }
+}
+
 module "eks" {
   source                               = "terraform-aws-modules/eks/aws"
   version                              = "v20.37.2"
@@ -81,6 +102,44 @@ module "eks" {
 }
 
 ##########################################
+############ AWS LoadBalancer ############
+##########################################
+# Fetch ALB CRDs (Custom Resource Definitions) from GitHub
+data "http" "alb_crds" {
+  # Conditional creation based on the enable flag in alb_config
+  #   count = var.alb_config["enable"] ? 1 : 0
+  url = "https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml"
+}
+# Parse ALB CRDs YAML content
+locals {
+  alb_crds_yaml = split("---", data.http.alb_crds.body)
+}
+# Apply ALB CRDs to the Kubernetes cluster
+resource "kubectl_manifest" "alb_crds" {
+  yaml_body = data.http.alb_crds.body
+  depends_on = [module.eks]
+}
+resource "helm_release" "aws_lb_controller" {
+  name       = "aws-lb-controller"
+  chart      = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  version    = "1.13.4"
+  namespace  = "kube-system"
+  depends_on = [module.eks]
+  set {
+    name  = "clusterName"
+    value = module.eks.cluster_name
+  }
+  set {
+    name = "autoDiscoverAwsRegion"
+    value = "true"
+  }
+  set {
+    name = "autoDiscoverAwsVpcID"
+    value = "true"
+  }
+}
+##########################################
 ########### cluster-autoscaler ###########
 ##########################################
 resource "helm_release" "cluster-autoscaler" {
@@ -89,16 +148,33 @@ resource "helm_release" "cluster-autoscaler" {
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   version    = "9.50.0"
-
   set {
     name  = "autoDiscovery.clusterName"
     value = module.eks.cluster_name
   }
-
   set {
     name  = "awsRegion"
     value = var.region
   }
-
   depends_on = [module.eks]
+}
+
+##########################################
+############# external-secrets ###########
+##########################################
+resource "helm_release" "external-secrets-operator" {
+  name       = "external-secrets-operator"
+  chart      = "external-secrets"
+  repository = "https://charts.external-secrets.io"
+  version    = "0.19.1"
+  namespace  = "kube-system"
+  depends_on = [module.eks]
+}
+module "external_secret_iam_assumable_role_with_oidc" {
+  source           = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version          = "5.28.0"
+  create_role      = true
+  provider_url     = module.eks.oidc_provider
+  role_name        = "external-secrets-operator-role"
+  role_policy_arns = ["arn:aws:iam::aws:policy/SecretsManagerReadWrite"]
 }

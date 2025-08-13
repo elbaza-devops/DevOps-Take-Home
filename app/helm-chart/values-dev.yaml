@@ -3,9 +3,41 @@ image:
   repository: <your-dev-docker-image>
   tag: "dev"
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
+  targetPort: 3000
+  protocol: TCP
+  name: http
 containerPort: 3000
-awsSecret:
-  providerClass: aws-secrets-provider-dev
-  mountPath: /secrets
+fromSecret:
+  - name: demo-project-rds-creds
+    secret:
+      name: demo-project-rds-creds
+      key: password
+
+
+ingress:
+  enabled: true
+  className: "alb"
+  annotations: 
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    - host: hello.975050055337.realhandsonlabs.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+externalSecrets:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::975050055337:role/external-secrets-operator-role"
+  name: external-secrets-operator
+  region: us-east-1
+  secrets:
+    - name: demo-project-rds-creds
+      type: Opaque
+      data:
+        - name: password
+          providerKey: demo-project/rds-creds
+          providerProperty: password

@@ -1,0 +1,128 @@
+---
+# Source: hello-world-js/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hello-world-js
+  labels:
+    helm.sh/chart: hello-world-js-0.1.0
+    app.kubernetes.io/name: hello-world-js
+    app.kubernetes.io/instance: hello-world-js
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: hello-world-js/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world-js
+  labels:
+    helm.sh/chart: hello-world-js-0.1.0
+    app.kubernetes.io/name: hello-world-js
+    app.kubernetes.io/instance: hello-world-js
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: hello-world-js
+    app.kubernetes.io/instance: hello-world-js
+---
+# Source: hello-world-js/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-js
+  labels:
+    helm.sh/chart: hello-world-js-0.1.0
+    app.kubernetes.io/name: hello-world-js
+    app.kubernetes.io/instance: hello-world-js
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hello-world-js
+      app.kubernetes.io/instance: hello-world-js
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: hello-world-js-0.1.0
+        app.kubernetes.io/name: hello-world-js
+        app.kubernetes.io/instance: hello-world-js
+        app.kubernetes.io/version: "1.16.0"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: hello-world-js
+      containers:
+        - name: hello-world-js
+          image: "975050055337.dkr.ecr.us-east-1.amazonaws.com/hello-world-js:4"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          envFrom:
+            - secretRef:
+                name: aws-rds-cred
+---
+# Source: hello-world-js/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-world-js
+  labels:
+    helm.sh/chart: hello-world-js-0.1.0
+    app.kubernetes.io/name: hello-world-js
+    app.kubernetes.io/instance: hello-world-js
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  rules:
+    - host: "hello.975050055337.realhandsonlabs.net"
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: hello-world-js
+                port:
+                  number: 80
+---
+# Source: hello-world-js/templates/external-secret.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: aws-rds-cred-secret
+spec:
+  refreshInterval: 10s
+  secretStoreRef:
+    name: external-secrets-operator-store
+    kind: SecretStore
+  target:
+    name: aws-rds-cred
+    creationPolicy: Owner
+    template:
+      type: Opaque
+
+  data:
+    - secretKey: secrets
+      remoteRef:
+        key: "demo-project/rds-creds"
+        property: "password"

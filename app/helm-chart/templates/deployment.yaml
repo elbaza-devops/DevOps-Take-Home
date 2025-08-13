@@ -44,33 +44,25 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          volumeMounts:
-            - name: aws-secret
-              mountPath: {{ .Values.awsSecret.mountPath | default "/secrets" }}
-              readOnly: true
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      volumes:
-        - name: aws-secret
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: {{ .Values.awsSecret.providerClass | default "aws-secrets-provider" }}
+          env:
+            {{- if .Values.fromSecret }}
+            {{- range .Values.fromSecret }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secret.name }}
+                  key: {{ .secret.key }}
+                  optional: {{ .secret.isOptional | default false  }}
+            {{- end }}
+            {{- end }}
+            {{- range .standard }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
