@@ -1,0 +1,9 @@
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+      service.beta.kubernetes.io/aws-load-balancer-name: demo-project-nlb
+  ingressClassResource:
+    default: true
+  allowSnippetAnnotations: true

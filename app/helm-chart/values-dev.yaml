@@ -32,18 +32,25 @@ env:
 
 ingress:  
   enabled: true
-  className: "alb"
+  className: "nginx"
   annotations: 
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/load-balancer-name: "demo-project-dev-alb"
+    cert-manager.io/cluster-issuer: letsencrypt-issuer
   hosts:
     - host: hello.851725332550.realhandsonlabs.net
       paths:
         - path: /
           pathType: ImplementationSpecific
-  tls: []
+  tls:
+    - hosts: ["hello.851725332550.realhandsonlabs.net"]
+      secretName: acme-certificate
 
+clusterIssuer:
+  name: letsencrypt-issuer
+  email: fathalla.ebrahem22@gmail.com
+  privateKeySecretName: letsencrypt-account-key
+  region: us-east-1
+  hostedZoneID: Z0836720IIMJRIDGN3KT
+  
 externalSecrets:
   create: true
   annotations:
