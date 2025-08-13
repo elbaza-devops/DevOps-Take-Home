@@ -1,0 +1,11 @@
+replicaCount: 1
+image:
+  repository: <your-dev-docker-image>
+  tag: "dev"
+service:
+  type: LoadBalancer
+  port: 80
+containerPort: 3000
+awsSecret:
+  providerClass: aws-secrets-provider-dev
+  mountPath: /secrets
