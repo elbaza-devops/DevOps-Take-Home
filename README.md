@@ -1,5 +1,9 @@
 # DevOps-Take-Home
 
+## Architecture Diagram
+
+![Architecture Diagram](assets/architicture.png)
+
 ## Architecture Overview
 
 - **Application**: Node.js app running on port 3000, containerized with Docker.
