@@ -57,14 +57,35 @@ module "cluster_autoscaler_pod_identity" {
 }
 
 module "aws_lb_controller_pod_identity" {
-  source = "terraform-aws-modules/eks-pod-identity/aws"
-  version = "1.12.1"
-  name = "aws-lbc"
+  source                          = "terraform-aws-modules/eks-pod-identity/aws"
+  version                         = "1.12.1"
+  name                            = "aws-lbc"
   attach_aws_lb_controller_policy = true
   # Pod Identity Associations
   association_defaults = {
     namespace       = "kube-system"
     service_account = "aws-lb-controller-aws-load-balancer-controller"
+  }
+  associations = {
+    ex-one = {
+      cluster_name = module.eks.cluster_name
+    }
+  }
+  tags = {
+    Environment = "dev"
+  }
+}
+
+module "cert_manager_pod_identity" {
+  source                        = "terraform-aws-modules/eks-pod-identity/aws"
+  name                          = "cert-manager"
+  version                       = "1.12.1"
+  attach_cert_manager_policy    = true
+  cert_manager_hosted_zone_arns = ["arn:aws:route53:::hostedzone/Z0836720IIMJRIDGN3KT"]
+  # Pod Identity Associations
+  association_defaults = {
+    namespace       = "cert-manager"
+    service_account = "cert-manager"
   }
   associations = {
     ex-one = {
@@ -116,7 +137,7 @@ locals {
 }
 # Apply ALB CRDs to the Kubernetes cluster
 resource "kubectl_manifest" "alb_crds" {
-  yaml_body = data.http.alb_crds.body
+  yaml_body  = data.http.alb_crds.body
   depends_on = [module.eks]
 }
 resource "helm_release" "aws_lb_controller" {
@@ -131,11 +152,11 @@ resource "helm_release" "aws_lb_controller" {
     value = module.eks.cluster_name
   }
   set {
-    name = "autoDiscoverAwsRegion"
+    name  = "autoDiscoverAwsRegion"
     value = "true"
   }
   set {
-    name = "autoDiscoverAwsVpcID"
+    name  = "autoDiscoverAwsVpcID"
     value = "true"
   }
 }
@@ -202,4 +223,17 @@ resource "helm_release" "kube_prometheus_stack" {
   namespace        = "monitoring"
   create_namespace = true
   values           = [file("${path.module}/Helm-values/1-alert-manager.yaml")]
+}
+
+##########################################
+############### Cert manager #############
+##########################################
+resource "helm_release" "cert_manager" {
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  version          = "v1.18.1"
+  namespace        = "cert-manager"
+  create_namespace = true
+  values           = [file("${path.module}/Helm-values/2-cert-manager.yaml")]
 }

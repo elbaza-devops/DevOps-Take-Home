@@ -38,7 +38,7 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/load-balancer-name: "demo-project-dev-alb"
   hosts:
-    - host: hello.533267435087.realhandsonlabs.net
+    - host: hello.851725332550.realhandsonlabs.net
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -47,7 +47,7 @@ ingress:
 externalSecrets:
   create: true
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::533267435087:role/external-secrets-operator-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::851725332550:role/external-secrets-operator-role"
   name: external-secrets-operator
   region: us-east-1
   secrets:

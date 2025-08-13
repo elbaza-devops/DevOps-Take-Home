@@ -152,7 +152,9 @@ helm upgrade --install hello-world-js . \
 	 - `AWS_ACCESS_KEY_ID`
 	 - `AWS_SECRET_ACCESS_KEY`
 3. **Provision Infrastructure** with Terraform as above.
-4. **Update `values-dev.yaml`** with your new AWS account details, ECR repo, and domain.
+4. **Update `values-dev.yaml`**:
+	- Change all occurrences of the AWS account ID (e.g., in IAM role ARNs, domains, and annotations) to match your new AWS account.
+	- Update the ECR repository, domain, and any other account-specific values as needed.
 5. **Push code to main branch** to trigger CI/CD, or deploy manually with Helm.
 6. **Set up AWS Secrets Manager** with required secrets.
 7. **Access the app** via the ALB DNS or your configured domain.

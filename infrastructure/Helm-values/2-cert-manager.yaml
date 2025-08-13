@@ -1,0 +1,9 @@
+crds:
+  enabled: true
+  keep: false
+
+serviceAccount:
+  create: true
+  name: cert-manager
+
+featureGates: "ACMEHTTP01IngressPathTypeExact=false"
