@@ -21,6 +21,7 @@ ingress:
   className: "alb"
   annotations: 
     alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/scheme: internet-facing
   hosts:
     - host: hello.533267435087.realhandsonlabs.net
       paths:
