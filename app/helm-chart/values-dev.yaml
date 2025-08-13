@@ -46,11 +46,11 @@ ingress:
 
 clusterIssuer:
   name: letsencrypt-issuer
-  email: fathalla.ebrahem22@gmail.com
+  email: example@gmail.com
   privateKeySecretName: letsencrypt-account-key
   region: us-east-1
   hostedZoneID: Z0836720IIMJRIDGN3KT
-  
+
 externalSecrets:
   create: true
   annotations:
