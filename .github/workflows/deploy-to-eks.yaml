@@ -24,7 +24,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        run: docker build -t ${{ vars.Account_ID }}.dkr.ecr.us-east-1.amazonaws.com/hello-world-js:${{ github.run_number }} ./app/hello-world-js
+        run: docker build -t ${{ vars.Account_ID }}.dkr.ecr.us-east-1.amazonaws.com/hello-world-js:${{ github.run_number }} ./app
 
       - name: Push Docker image to ECR
         run: docker push ${{ vars.Account_ID }}.dkr.ecr.us-east-1.amazonaws.com/hello-world-js:${{ github.run_number }}
