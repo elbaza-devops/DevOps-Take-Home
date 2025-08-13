@@ -22,6 +22,7 @@ ingress:
   annotations: 
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/load-balancer-name: "demo-project-dev-alb"
   hosts:
     - host: hello.533267435087.realhandsonlabs.net
       paths:
