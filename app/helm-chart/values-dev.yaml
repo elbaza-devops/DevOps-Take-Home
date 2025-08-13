@@ -1,3 +1,16 @@
+## Health checks
+livenessProbe:
+  httpGet:
+    path: /
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 10
 replicaCount: 1
 image:
   repository: <your-dev-docker-image>
@@ -9,14 +22,15 @@ service:
   protocol: TCP
   name: http
 containerPort: 3000
-fromSecret:
-  - name: demo-project-rds-creds
-    secret:
-      name: demo-project-rds-creds
-      key: password
+env:
+  fromSecret:
+    - name: DEMO_PROJECT_RDS_CREDS
+      secret:
+        name: demo-project-rds-creds
+        key: password
 
 
-ingress:
+ingress:  
   enabled: true
   className: "alb"
   annotations: 
@@ -43,3 +57,7 @@ externalSecrets:
         - name: password
           providerKey: demo-project/rds-creds
           providerProperty: password
+
+
+
+https://hooks.slack.com/services/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

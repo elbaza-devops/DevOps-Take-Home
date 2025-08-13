@@ -178,3 +178,28 @@ module "external_secret_iam_assumable_role_with_oidc" {
   role_name        = "external-secrets-operator-role"
   role_policy_arns = ["arn:aws:iam::aws:policy/SecretsManagerReadWrite"]
 }
+
+##########################################
+############### Metrics Server ###########
+##########################################
+resource "helm_release" "metrics_server" {
+  name             = "metrics-server"
+  repository       = "https://kubernetes-sigs.github.io/metrics-server"
+  chart            = "metrics-server"
+  version          = "3.12.2"
+  namespace        = "kube-system"
+  create_namespace = false
+}
+
+##########################################
+######## Kube Prometheus Stack  ##########
+##########################################
+resource "helm_release" "kube_prometheus_stack" {
+  name             = "kube-prometheus-stack"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "kube-prometheus-stack"
+  version          = "76.3.0"
+  namespace        = "monitoring"
+  create_namespace = true
+  values           = [file("${path.module}/Helm-values/1-alert-manager.yaml")]
+}
