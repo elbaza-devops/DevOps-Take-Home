@@ -2,7 +2,7 @@
 
 ## Architecture Diagram
 
-![Architecture Diagram](assets/architicture.png)
+![Architecture Diagram](https://drive.google.com/file/d/1o2FQSiEBOl1ZjYcfne1au-Cez-Os3WTA/view?usp=sharing)
 
 ## Architecture Overview
 
